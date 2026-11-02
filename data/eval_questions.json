@@ -1,0 +1,204 @@
+[
+  {
+    "pdf": "data/sample-sdf-document (Project 6).pdf",
+    "questions": [
+      {
+        "q": "What is the lot/batch number on the Certificate of Quality?",
+        "must_contain": [
+          "17242818",
+          "18356721"
+        ],
+        "doc_type": "Certificate of Quality",
+        "pages": [
+          2,
+          3
+        ]
+      },
+      {
+        "q": "What is the expiry or retest date?",
+        "must_contain": [
+          "20230126",
+          "20260315"
+        ],
+        "doc_type": "Certificate of Quality",
+        "pages": [
+          2,
+          3
+        ]
+      },
+      {
+        "q": "Who signed the cover letter, and when?",
+        "must_contain": [
+          "Mike Toner",
+          "2022"
+        ],
+        "doc_type": "Cover Letter",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "q": "What is the recommended storage temperature?",
+        "must_contain": [
+          "+5"
+        ],
+        "doc_type": "Cover Letter",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "q": "What does the packaging specification say about the carton?",
+        "not_found": true
+      },
+      {
+        "q": "What is the capital of France?",
+        "not_found": true
+      }
+    ]
+  },
+  {
+    "pdf": "data/pharma-blob-sample.pdf",
+    "questions": [
+      {
+        "q": "What is the lot/batch number on the Certificate of Quality?",
+        "must_contain": [
+          "18356721",
+          "15102934"
+        ],
+        "doc_type": "Certificate of Quality",
+        "pages": [
+          2,
+          3
+        ]
+      },
+      {
+        "q": "What is the expiry or retest date?",
+        "must_contain": [
+          "20260315",
+          "20210712"
+        ],
+        "doc_type": "Certificate of Quality",
+        "pages": [
+          2,
+          3
+        ]
+      },
+      {
+        "q": "Is the product free of animal-origin materials?",
+        "must_contain": [
+          "animal"
+        ],
+        "doc_type": "BSE/TSE Declaration",
+        "pages": [
+          6
+        ]
+      },
+      {
+        "q": "Who signed the cover letter, and when?",
+        "must_contain": [
+          "Cytiva Quality Assurance"
+        ],
+        "doc_type": "Cover Letter",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "q": "What packaging is used?",
+        "must_contain": [
+          "PETG",
+          "Tyvek"
+        ],
+        "doc_type": "Packaging Specification",
+        "pages": [
+          4,
+          5
+        ]
+      },
+      {
+        "q": "What is the capital of France?",
+        "not_found": true
+      }
+    ]
+  },
+  {
+    "pdf": "data/west-pharma-sdf-test.pdf",
+    "questions": [
+      {
+        "q": "What is the lot/batch number on the Certificate of Quality?",
+        "must_contain": [
+          "D000291847",
+          "D000291852",
+          "D000291863",
+          "D000291871",
+          "D000291885"
+        ],
+        "doc_type": "Certificate of Quality",
+        "pages": [
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "q": "What is the expiry or retest date?",
+        "must_contain": [
+          "2029-10-01"
+        ],
+        "doc_type": "Certificate of Quality",
+        "pages": [
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "q": "Is the product free of animal-origin materials?",
+        "must_contain": [
+          "animal"
+        ],
+        "doc_type": "BSE/TSE Declaration",
+        "pages": [
+          6
+        ]
+      },
+      {
+        "q": "Who signed the cover letter, and when?",
+        "must_contain": [
+          "Melissa Hartmann",
+          "2025"
+        ],
+        "doc_type": "Cover Letter",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "q": "What packaging is used?",
+        "must_contain": [
+          "LDPE"
+        ],
+        "doc_type": "Packaging Specification",
+        "pages": [
+          5
+        ]
+      },
+      {
+        "q": "What sterilization method and dose range were used?",
+        "must_contain": [
+          "gamma",
+          "25.0"
+        ],
+        "doc_type": "Sterilization Certificate",
+        "pages": [
+          10
+        ]
+      },
+      {
+        "q": "What is the capital of France?",
+        "not_found": true
+      }
+    ]
+  }
+]

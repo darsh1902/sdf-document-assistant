@@ -1,0 +1,17 @@
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Gradio temp files
+.gradio/
+
+# macOS
+.DS_Store
+
+# Private notes for Claude Code (not part of the project)
+CLAUDE.md
+.claude/
