@@ -23,34 +23,7 @@ certificates and more. Some pages are digital text, some are scans. The assistan
 The assistant works in two parts. **Part 1** prepares the documents once, when a PDF is
 uploaded. **Part 2** runs every time someone asks a question.
 
-```mermaid
-%%{init: {"flowchart": {"htmlLabels": false}}}%%
-flowchart TD
-    U(["`**You upload a supplier PDF packet**`"]) --> A
-
-    subgraph P1["`**Part 1: Preparing the documents** (once per upload)`"]
-        A["`**1. Read every page**
-        Scanned pages are read with OCR`"] --> B["`**2. Label each page**
-        Cover Letter, Certificate of Quality, ...`"]
-        B --> C["`**3. Cut pages into short passages**
-        About one paragraph each`"]
-        C --> D["`**4. File passages in a searchable library**
-        Organized by meaning, not just words`"]
-    end
-
-    Q(["`**You ask a question**`"]) --> E
-    D -.-> E
-
-    subgraph P2["`**Part 2: Answering a question** (about 2 seconds)`"]
-        E["`**5. Search**
-        Find the 20 passages closest in meaning`"] --> F["`**6. Double-check**
-        Re-read those 20, keep the best 6`"]
-        F --> G["`**7. Write the answer**
-        The AI may only use those 6 passages`"]
-    end
-
-    G --> H(["`**Answer + source page + confidence score**`"])
-```
+![System architecture: Part 1 prepares the documents (read, label, cut into passages, file in a library); Part 2 answers a question (search, double-check, write the answer with its source page)](docs/architecture.svg)
 
 **What each step does, in plain English**
 

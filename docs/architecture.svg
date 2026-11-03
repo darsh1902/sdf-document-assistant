@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="600" viewBox="0 0 960 600" font-family="Helvetica, Arial, sans-serif">
+  <title>SDF Document Assistant: system architecture</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#4B5563"/>
+    </marker>
+  </defs>
+
+  <!-- Background (keeps the diagram readable in GitHub dark mode too) -->
+  <rect width="960" height="600" rx="16" fill="#FFFFFF"/>
+
+  <!-- ===== Part 1: preparing the documents ===== -->
+  <rect x="40" y="110" width="400" height="455" rx="14" fill="#EEF4FF" stroke="#C7D7F5" stroke-width="1.5"/>
+  <text x="62" y="138" font-size="17" font-weight="700" fill="#1F3A5F">Part 1 · Preparing the documents</text>
+  <text x="62" y="157" font-size="13" fill="#4B5563">Once, when a PDF is uploaded</text>
+
+  <rect x="140" y="30" width="200" height="46" rx="23" fill="#1F3A5F"/>
+  <text x="240" y="59" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">You upload a PDF</text>
+  <line x1="240" y1="76" x2="240" y2="107" stroke="#4B5563" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="70" y="175" width="340" height="80" rx="10" fill="#FFFFFF" stroke="#9DB4DD" stroke-width="1.5"/>
+  <text x="90" y="207" font-size="17" font-weight="700" fill="#111827">1. Read every page</text>
+  <text x="90" y="231" font-size="14" fill="#4B5563">Scanned pages are read with OCR</text>
+  <line x1="240" y1="255" x2="240" y2="267" stroke="#4B5563" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="70" y="270" width="340" height="80" rx="10" fill="#FFFFFF" stroke="#9DB4DD" stroke-width="1.5"/>
+  <text x="90" y="302" font-size="17" font-weight="700" fill="#111827">2. Label each page</text>
+  <text x="90" y="326" font-size="14" fill="#4B5563">Cover letter, certificate of quality, ...</text>
+  <line x1="240" y1="350" x2="240" y2="362" stroke="#4B5563" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="70" y="365" width="340" height="80" rx="10" fill="#FFFFFF" stroke="#9DB4DD" stroke-width="1.5"/>
+  <text x="90" y="397" font-size="17" font-weight="700" fill="#111827">3. Cut pages into short passages</text>
+  <text x="90" y="421" font-size="14" fill="#4B5563">About one paragraph each</text>
+  <line x1="240" y1="445" x2="240" y2="457" stroke="#4B5563" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="70" y="460" width="340" height="80" rx="10" fill="#FFFFFF" stroke="#9DB4DD" stroke-width="1.5"/>
+  <text x="90" y="492" font-size="17" font-weight="700" fill="#111827">4. File passages in a library</text>
+  <text x="90" y="516" font-size="14" fill="#4B5563">Searchable by meaning, not just words</text>
+
+  <!-- ===== Part 2: answering a question ===== -->
+  <rect x="520" y="110" width="400" height="360" rx="14" fill="#FFF5E8" stroke="#F2D3A6" stroke-width="1.5"/>
+  <text x="542" y="138" font-size="17" font-weight="700" fill="#7A4A12">Part 2 · Answering a question</text>
+  <text x="542" y="157" font-size="13" fill="#4B5563">Every question, about 2 seconds</text>
+
+  <rect x="620" y="30" width="200" height="46" rx="23" fill="#1F3A5F"/>
+  <text x="720" y="59" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">You ask a question</text>
+  <line x1="720" y1="76" x2="720" y2="107" stroke="#4B5563" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="550" y="175" width="340" height="80" rx="10" fill="#FFFFFF" stroke="#E2B676" stroke-width="1.5"/>
+  <text x="570" y="207" font-size="17" font-weight="700" fill="#111827">5. Search</text>
+  <text x="570" y="231" font-size="14" fill="#4B5563">Find the 20 passages closest in meaning</text>
+  <line x1="720" y1="255" x2="720" y2="267" stroke="#4B5563" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="550" y="270" width="340" height="80" rx="10" fill="#FFFFFF" stroke="#E2B676" stroke-width="1.5"/>
+  <text x="570" y="302" font-size="17" font-weight="700" fill="#111827">6. Double-check</text>
+  <text x="570" y="326" font-size="14" fill="#4B5563">Re-read those 20 and keep the best 6</text>
+  <line x1="720" y1="350" x2="720" y2="362" stroke="#4B5563" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="550" y="365" width="340" height="80" rx="10" fill="#FFFFFF" stroke="#E2B676" stroke-width="1.5"/>
+  <text x="570" y="397" font-size="17" font-weight="700" fill="#111827">7. Write the answer</text>
+  <text x="570" y="421" font-size="14" fill="#4B5563">The AI may only use those 6 passages</text>
+  <line x1="720" y1="445" x2="720" y2="497" stroke="#4B5563" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <rect x="545" y="500" width="350" height="56" rx="28" fill="#1E7B4F"/>
+  <text x="720" y="534" font-size="15" font-weight="700" fill="#FFFFFF" text-anchor="middle">Answer + source page + confidence</text>
+
+  <!-- The search in step 5 looks things up in the library built in step 4 -->
+  <path d="M410,500 C470,500 480,215 547,215" fill="none" stroke="#4B5563" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#arrow)"/>
+  <text x="452" y="372" font-size="13" fill="#4B5563" text-anchor="middle" transform="rotate(-62 452 372)">searches the library</text>
+</svg>
