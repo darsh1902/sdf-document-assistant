@@ -18,13 +18,63 @@ certificates and more. Some pages are digital text, some are scans. The assistan
   *"Who signed the cover letter?"*, citing e.g. *(Certificate of Quality, Page 3)*;
 - says *"The documents don't contain this information"* instead of guessing.
 
-## How it works
+## System architecture
 
+The assistant works in two parts. **Part 1** prepares the documents once, when a PDF is
+uploaded. **Part 2** runs every time someone asks a question.
+
+```mermaid
+flowchart TD
+    U(["You upload a supplier PDF packet"]) --> A
+
+    subgraph P1["Part 1: Preparing the documents (once per upload, a few seconds at most)"]
+        A["1. Read every page<br/>Scanned pages are read with OCR"] --> B["2. Label each page<br/>Cover Letter, Certificate of Quality, ..."]
+        B --> C["3. Cut pages into short passages<br/>About one paragraph each"]
+        C --> D["4. File every passage in a searchable library<br/>Organized by meaning, not just by words"]
+    end
+
+    Q(["You ask a question"]) --> E
+    D -.-> E
+
+    subgraph P2["Part 2: Answering a question (about 2 seconds)"]
+        E["5. Search: find the 20 passages<br/>closest in meaning to the question"] --> F["6. Double-check: re-read those 20<br/>and keep the 6 most relevant"]
+        F --> G["7. Write the answer<br/>The AI may only use those 6 passages"]
+    end
+
+    G --> H(["Answer + the page it came from + a confidence score"])
 ```
-PDF ──► Read pages ──► Label pages ──► Chunk ──► Embed + index ──► Retrieve ──► Rerank ──► Answer
-        PyMuPDF +      keyword rules   Llama-    bge-small +       soft          cross-     GPT-6 Luna via
-        Tesseract OCR  + LLM fallback  Index     FAISS             routing       encoder    LlamaIndex
-```
+
+**What each step does, in plain English**
+
+1. **Read every page.** The assistant pulls the text out of each page of the PDF. Some pages are
+   scans (pictures of paper), so for those it uses OCR, which recognizes the letters in an image,
+   the way a phone app reads a photographed receipt.
+2. **Label each page.** One PDF holds several documents. The assistant works out which one each
+   page belongs to (cover letter, certificate of quality, animal-origin declaration, packaging
+   specification and so on), mostly from the page's title. If it is unsure, it asks the AI.
+   Every answer can then say exactly where it came from.
+3. **Cut pages into short passages.** A whole page is too much to search at once, so each page is
+   split into passages of about a paragraph. A passage never runs across two pages, so every fact
+   keeps a single page number.
+4. **File every passage in a searchable library.** Each passage is stored with a "meaning
+   fingerprint": a list of numbers that captures what the passage is about. Passages about the
+   same topic get similar fingerprints, so "expiry date" can find "use before" even though the
+   words differ.
+5. **Search.** When you ask a question, it gets a fingerprint too, and the 20 closest passages are
+   pulled out. If the question names a document ("the cover letter"), half of them come from
+   that document.
+6. **Double-check.** A second, more careful model reads the question next to each of the 20
+   passages and keeps the 6 that answer it best, like a librarian checking a stack of books
+   before handing them over.
+7. **Write the answer.** The AI model (GPT-6 Luna) writes a short answer **using only those 6
+   passages**, with the page each fact came from, such as *(Certificate of Quality, Page 3)*. If
+   the passages don't contain the answer, it says *"The documents don't contain this
+   information"* instead of guessing.
+
+**What you see:** the answer, a list of sources (document, page and file), a confidence score
+showing how closely the passages matched the question, and how long it took.
+
+### Technical details
 
 | Step | File | How |
 |---|---|---|
