@@ -9,8 +9,8 @@ from pathlib import Path
 import gradio as gr
 
 from src.chunking import process_pdf
-from src.config import DEFAULT_K, DEFAULT_MODEL
-from src.index import DocumentIndex, get_model
+from src.config import DEFAULT_K, DEFAULT_MODEL, USE_RERANKER
+from src.index import DocumentIndex, get_model, get_reranker
 from src.llm import available_models
 from src.rag import answer_question
 
@@ -193,7 +193,9 @@ with gr.Blocks(title="SDF Document Assistant") as demo:
 
 
 if __name__ == "__main__":
-    # Load the embedding model now, so the first "Process" click isn't slow.
+    # Load the models now, so the first "Process" click and first question aren't slow.
     get_model()
+    if USE_RERANKER:
+        get_reranker()
     print(f"Model: {DEFAULT_MODEL} | usable models: {available_models()}")
     demo.launch(theme=gr.themes.Soft())

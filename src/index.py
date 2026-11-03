@@ -16,17 +16,20 @@ import sentence_transformers  # noqa: F401  (imported only to load torch before 
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 import faiss
 from llama_index.core import StorageContext, VectorStoreIndex
+from llama_index.core.postprocessor import SentenceTransformerRerank
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 from llama_index.vector_stores.faiss import FaissVectorStore
 
 try:
     from src.chunking import process_pdf
     from src.classify import OTHER, classify_page
-    from src.config import DEFAULT_K, EMBEDDING_MODEL, SAMPLE_PDF
+    from src.config import (DEFAULT_K, EMBEDDING_MODEL, RERANK_CANDIDATES, RERANK_MODEL,
+                            SAMPLE_PDF, USE_RERANKER)
 except ImportError:
     from chunking import process_pdf
     from classify import OTHER, classify_page
-    from config import DEFAULT_K, EMBEDDING_MODEL, SAMPLE_PDF
+    from config import (DEFAULT_K, EMBEDDING_MODEL, RERANK_CANDIDATES, RERANK_MODEL,
+                        SAMPLE_PDF, USE_RERANKER)
 
 # BGE models retrieve better when *questions* (not documents) get this prefix.
 # See the BAAI/bge-small-en-v1.5 model card.
@@ -54,12 +57,27 @@ def get_model() -> HuggingFaceEmbedding:
     return _embed_model
 
 
+# Like the embedding model: loaded once, shared by every session.
+_reranker: SentenceTransformerRerank | None = None
+
+
+def get_reranker() -> SentenceTransformerRerank:
+    """Load the cross-encoder reranker the first time it's needed, then reuse it."""
+    global _reranker
+    if _reranker is None:
+        print(f"Loading reranker {RERANK_MODEL} (first run downloads it)...")
+        # top_n is set per call in rerank(); CPU for the same reason as the embedding model.
+        _reranker = SentenceTransformerRerank(model=RERANK_MODEL, top_n=DEFAULT_K, device="cpu")
+    return _reranker
+
+
 class DocumentIndex:
     """Holds the chunks of all uploaded PDFs and finds the ones relevant to a question."""
 
-    def __init__(self):
+    def __init__(self, use_reranker: bool = USE_RERANKER):
         self.nodes: list[TextNode] = []
         self.index: VectorStoreIndex | None = None
+        self.use_reranker = use_reranker
         # The doc type the last retrieve() auto-routed to (None = searched everything).
         # rag.py reads this so the UI can show "Routed to: Certificate of Quality".
         self.last_routed_type: str | None = None
@@ -111,11 +129,13 @@ class DocumentIndex:
 
     def retrieve(self, query: str, k: int = DEFAULT_K, filter_doc_type: str | None = None,
                  auto_route: bool = True) -> list[NodeWithScore]:
-        """Return the k most relevant nodes (each with its similarity .score), best first.
+        """Return the k most relevant nodes (each with its cosine similarity .score).
 
         - filter_doc_type: only search this document type ("All" or None = everything).
         - auto_route: if no filter is set, guess the doc type from the question's
           keywords and give that type half the result slots (soft routing, see below).
+        - With the reranker on, vector search gathers RERANK_CANDIDATES nodes and the
+          reranker picks the best k; the order is then the reranker's.
         """
         self.last_routed_type = None
         if not self.nodes or not query.strip():
@@ -123,13 +143,15 @@ class DocumentIndex:
 
         # Embed the question once and reuse it for every search below.
         bundle = QueryBundle(query_str=query, embedding=get_model().get_query_embedding(query))
+        # With reranking, cast a wider net first; the reranker narrows it down to k.
+        pool = max(k, RERANK_CANDIDATES) if self.use_reranker else k
 
         # 1. The user picked a type in the dropdown: respect it, no fallback.
         if filter_doc_type and filter_doc_type != "All":
-            return self._search(bundle, k, filter_doc_type)
+            return self._rerank(bundle, self._search(bundle, pool, filter_doc_type), k)
 
         # 2. Best matches across all documents (also the final answer when nothing is routed).
-        overall = self._search(bundle, k)
+        overall = self._search(bundle, pool)
 
         # 3. Soft auto-route: one keyword in a short question is enough of a hint (min_score=1).
         # The guessed type gets half the slots and the best overall matches get the rest.
@@ -138,13 +160,28 @@ class DocumentIndex:
         if auto_route:
             guessed = classify_page(query, min_score=1)
             if guessed != OTHER and guessed in self.doc_types:
-                routed = self._search(bundle, k, guessed)
+                routed = self._search(bundle, pool, guessed)
                 if routed:
                     self.last_routed_type = guessed
                     print(f"Auto-routed to: {guessed} (soft)")
-                    return self._merge(routed, overall, k)
+                    return self._rerank(bundle, self._merge(routed, overall, pool), k)
 
-        return overall
+        return self._rerank(bundle, overall, k)
+
+    def _rerank(self, query: QueryBundle, candidates: list[NodeWithScore], k: int) -> list[NodeWithScore]:
+        """Let the cross-encoder pick the best k candidates (or just take the top k if it's off)."""
+        if not self.use_reranker or len(candidates) <= 1:
+            return candidates[:k]
+        reranker = get_reranker()
+        reranker.top_n = k
+        # The reranker reads each node's EMBED view, so it also sees "[Source: Cover Letter]"
+        # (see chunking.py): a letter's signature chunk never says "cover letter" itself.
+        # It replaces .score with its own score, so copies are passed in, and the cosine
+        # scores are put back afterwards: the UI's confidence and Sources stay 0-1 cosine values.
+        cosine = {c.node.node_id: c.score for c in candidates}
+        reranked = reranker.postprocess_nodes(
+            [NodeWithScore(node=c.node, score=c.score) for c in candidates], query_bundle=query)
+        return [NodeWithScore(node=r.node, score=cosine[r.node.node_id]) for r in reranked]
 
     @staticmethod
     def _merge(routed: list[NodeWithScore], overall: list[NodeWithScore], k: int) -> list[NodeWithScore]:

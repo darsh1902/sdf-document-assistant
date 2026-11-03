@@ -54,6 +54,13 @@ CHUNK_SIZE = 200      # tokens per chunk
 CHUNK_OVERLAP = 40    # overlap keeps facts that span a chunk boundary findable
 DEFAULT_K = 6         # how many chunks to retrieve per question (6 fits multi-batch answers)
 
+# Re-ranking: vector search fetches a bigger pool of candidates, then a cross-encoder
+# (which reads the question and each chunk together, so it judges relevance better than
+# comparing two embeddings) picks the best DEFAULT_K of them for the LLM.
+USE_RERANKER = True
+RERANK_MODEL = os.getenv("RERANK_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+RERANK_CANDIDATES = 20  # chunks the reranker scores per question
+
 # ---------------------------------------------------------------------------
 # Page classification
 # ---------------------------------------------------------------------------
@@ -87,6 +94,8 @@ if __name__ == "__main__":
     print(f"Embedding model:  {EMBEDDING_MODEL}")
     print(f"Chunk size:       {CHUNK_SIZE} (overlap {CHUNK_OVERLAP})")
     print(f"Default k:        {DEFAULT_K}")
+    print(f"Reranker:         {RERANK_MODEL if USE_RERANKER else 'off'} "
+          f"({RERANK_CANDIDATES} candidates -> top {DEFAULT_K})")
     print(f"OCR threshold:    {OCR_MIN_CHARS} chars, {OCR_DPI} DPI")
     print(f"LLM temperature:  {LLM_TEMPERATURE}")
     print(f"Default model:    {DEFAULT_MODEL}")

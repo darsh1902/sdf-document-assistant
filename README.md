@@ -21,9 +21,9 @@ certificates and more. Some pages are digital text, some are scans. The assistan
 ## How it works
 
 ```
-PDF ──► Read pages ──► Label pages ──► Chunk ──► Embed + index ──► Retrieve ──► Answer
-        PyMuPDF +      keyword rules   Llama-    bge-small +       soft          GPT-6 Luna via
-        Tesseract OCR  + LLM fallback  Index     FAISS             routing       LlamaIndex
+PDF ──► Read pages ──► Label pages ──► Chunk ──► Embed + index ──► Retrieve ──► Rerank ──► Answer
+        PyMuPDF +      keyword rules   Llama-    bge-small +       soft          cross-     GPT-6 Luna via
+        Tesseract OCR  + LLM fallback  Index     FAISS             routing       encoder    LlamaIndex
 ```
 
 | Step | File | How |
@@ -32,7 +32,8 @@ PDF ──► Read pages ──► Label pages ──► Chunk ──► Embed +
 | Label | `src/classify.py` | Keyword rules (title words count double) assign a document type; when unsure, the LLM labels the page |
 | Chunk | `src/chunking.py` | Each page becomes a LlamaIndex `Document`; `SentenceSplitter` makes 200-token nodes that never cross a page |
 | Index | `src/index.py` | LlamaIndex `VectorStoreIndex` on FAISS, embedded with `BAAI/bge-small-en-v1.5`; each chunk is embedded with its document type |
-| Retrieve | `src/index.py` | If a question names a document type, half the results come from that type and half are the best matches overall |
+| Retrieve | `src/index.py` | If a question names a document type, half the candidates come from that type and half are the best matches overall |
+| Rerank | `src/index.py` | A cross-encoder (`ms-marco-MiniLM-L-6-v2`) re-scores the top 20 candidates and keeps the best 6 |
 | Answer | `src/rag.py` | LlamaIndex response synthesizer with a grounded prompt (cite sources, list every batch, never answer from the wrong document) |
 | UI | `app.py` | Gradio app: upload, document summary, chat with sources, confidence score and response time |
 
@@ -44,6 +45,7 @@ document:
 
 - **Answers correct: 19/19**
 - **Right document retrieved: 15/15** (the other 4 are off-topic or missing-document questions)
+- **Retrieval:** hit rate 100%, MRR 0.97 (0.82 before adding the reranker), Recall@6 95.6%
 
 Full table: [`eval_results.md`](eval_results.md).
 
@@ -96,5 +98,5 @@ data/                     sample SDF packets + eval_questions.json
 
 - Tested on three packets; every new supplier packet should be added to the evaluation set.
 - The confidence score measures how well retrieval matched, not whether the answer is correct.
-- Next: keyword (BM25) search alongside vector search for exact codes, a reranker, an
-  open-source model option (gpt-oss-20b on Groq), and a saved index for large document sets.
+- Next: keyword (BM25) search alongside vector search for exact codes, an open-source model
+  option (gpt-oss-20b on Groq), and a saved index for large document sets.
